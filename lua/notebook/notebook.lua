@@ -297,9 +297,18 @@ function M.open_output(state)
 
 	-- feed outputs into the parser
 	for _, out in ipairs(state.output_store[cell_idx]) do
+		-- text output
 		local text = out.text or (out.data and out.data["text/plain"])
 		if text then
 			parser.push(text)
+		end
+
+		-- error output
+		if out.output_type == "error" or out.traceback then
+			parser.flush()
+			local error_text = table.concat(utils.table_or_str_lines(out.traceback), "\n")
+			local clean = utils.strip_ansi(error_text)
+			parser.push(clean)
 		end
 	end
 	-- flush remaining text

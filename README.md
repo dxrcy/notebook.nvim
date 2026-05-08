@@ -36,6 +36,7 @@ return {
 		format_command = "black --quiet -",
 		image_warn_threshold = 10,
 		override_gitsigns = true,
+		override_conform = true,
 
 		keys = {
 			run_cell           = "r",

@@ -18,6 +18,7 @@ local M = {}
 --- @field format_command string command to use to format cell content (through stdin)
 --- @field image_warn_threshold integer how many images will cause opening them to require confirmation
 --- @field override_gitsigns boolean whether to run the gitsigns override trick
+--- @field override_conform boolean whether to run the conform override trick
 --- @field debug boolean debug mode for development
 --- categorised option sections
 --- @field keys Notebook.Options.options.keys keybinds
@@ -84,6 +85,7 @@ M.options = {
 	format_command = "black --quiet -",
 	image_warn_threshold = 10,
 	override_gitsigns = true,
+	override_conform = true,
 	debug = false,
 
 	keys = {

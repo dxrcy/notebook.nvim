@@ -11,6 +11,7 @@ function M.setup(options)
 	require("notebook.notebook").setup()
 
 	require("notebook.gitsigns").setup()
+	require("notebook.conform").setup()
 end
 
 return M

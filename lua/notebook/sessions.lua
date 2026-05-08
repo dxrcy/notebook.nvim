@@ -49,4 +49,8 @@ function M.get_state(bufnr)
 	return M.sessions[bufnr]
 end
 
+function M.is_session(bufnr)
+	return M.sessions[bufnr] ~= nil
+end
+
 return M

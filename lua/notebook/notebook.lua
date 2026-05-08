@@ -22,7 +22,7 @@ end
 --- sync all """ and # """ delimiters after a cell change
 --- @param state Notebook.Sessions.session
 --- @param cells table
-local function sync_buffer(state, cells)
+function M.sync_buffer(state, cells)
 	local notebook_lines = {}
 
 	for i, cell in ipairs(cells) do
@@ -96,7 +96,7 @@ function M.insert_cell(state, cell_type)
 	end
 
 	-- sync buffer
-	sync_buffer(state, cells)
+	M.sync_buffer(state, cells)
 	M.rerender(state)
 
 	-- move cursor into the new cell
@@ -139,7 +139,7 @@ function M.remove_cell(state)
 	end
 
 	-- apply cleanly to buffer
-	sync_buffer(state, cells)
+	M.sync_buffer(state, cells)
 	M.rerender(state)
 
 	-- fallback cursor to the cell that took its place, or the new bottom cell
@@ -215,7 +215,7 @@ function M.split_cell(state)
 	table.insert(state.snacks_images, idx + 1, {})
 
 	-- sync buffer
-	sync_buffer(state, cells)
+	M.sync_buffer(state, cells)
 	M.rerender(state)
 
 	-- move cursor to new cell start
@@ -261,7 +261,7 @@ function M.move_cell(state, direction)
 	end
 
 	-- sync and render
-	sync_buffer(state, cells)
+	M.sync_buffer(state, cells)
 	M.rerender(state)
 
 	-- move cursor to new position

@@ -7,7 +7,7 @@ cells without having to 'open' cells. The approach is to dump everything into a 
 comments to represent markdown cells.
 Cover that in a bunch of extmarks and you get a unique way of using Python Jupyter Notebooks.
 
-<img src="meta/banner.png" width="300" />
+<img src="meta/banner.png" width="400" />
 
 Example usage for `lazy.nvim`.
 

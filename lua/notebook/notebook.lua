@@ -552,18 +552,19 @@ function M.save(state)
 	end
 end
 
---- read a notebook and setup the buffer
---- @param state Notebook.Sessions.session
-function M.read_file(state)
-	-- decode notebook data with fallback to empty template
-	local raw_lines = vim.fn.readfile(state.path)
-	local ok, decoded = pcall(vim.json.decode, table.concat(raw_lines, "\n"))
-	local blank_notebook = jupyter.blank_notebook()
-	state.raw_json = ok and decoded or blank_notebook
+--- parse raw notebook json data into the custom notebook format
+--- @param data string | string[]
+--- @return string[], table
+function M.parse_notebook_data(data)
+	local raw_data = type(data) == "table" and table.concat(data, "\n") or data
+	local ok, raw_json = pcall(vim.json.decode, raw_data)
+	if not ok then
+		raw_json = jupyter.blank_notebook()
+	end
 
 	-- construct editable notebook content
 	local notebook_lines = {}
-	for i, cell in ipairs(state.raw_json.cells) do
+	for i, cell in ipairs(raw_json.cells) do
 		-- read cell source content
 		local src = utils.table_or_str_lines(cell.source)
 		local stripped = utils.strip_source(src)
@@ -590,12 +591,24 @@ function M.read_file(state)
 		table.insert(notebook_lines, delimeter)
 
 		if cell.cell_type == "code" then
-			local next_c = state.raw_json.cells[i + 1]
+			local next_c = raw_json.cells[i + 1]
 			if next_c and next_c.cell_type == "code" then
 				table.insert(notebook_lines, '# """')
 			end
 		end
+	end
 
+	return notebook_lines, raw_json
+end
+
+--- read a notebook and setup the buffer
+--- @param state Notebook.Sessions.session
+function M.read_file(state)
+	local raw_lines = vim.fn.readfile(state.path)
+	local notebook_lines, raw_json = M.parse_notebook_data(raw_lines)
+	state.raw_json = raw_json
+
+	for i, cell in ipairs(raw_json.cells) do
 		-- read existing cell output
 		state.output_store[i] = cell.outputs or {}
 		if #state.output_store[i] > 0 then

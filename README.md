@@ -34,6 +34,7 @@ return {
 		write_output = true,
 		new_cell_cmd = "normal! A\nstartinsert!",
 		image_warn_threshold = 10,
+		override_gitsigns = true,
 
 		keys = {
 			run_cell           = "r",

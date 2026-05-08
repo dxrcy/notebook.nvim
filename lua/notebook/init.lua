@@ -9,6 +9,8 @@ function M.setup(options)
 	-- setup rest of plugin
 	require("notebook.renderer").setup()
 	require("notebook.notebook").setup()
+
+	require("notebook.gitsigns").setup()
 end
 
 return M

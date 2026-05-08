@@ -33,6 +33,7 @@ return {
 		cell_gap = 0,
 		write_output = true,
 		new_cell_cmd = "normal! A\nstartinsert!",
+		format_command = "black --quiet -",
 		image_warn_threshold = 10,
 		override_gitsigns = true,
 
@@ -55,6 +56,7 @@ return {
 
 			clear_all_output   = "x",
 			refresh_all_output = "R",
+			format_cell        = "f",
 
 			open_image         = "gx",
 			show_output        = "<CR>",

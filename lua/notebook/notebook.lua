@@ -718,6 +718,56 @@ function M.dump_images(state)
 	vim.notify(vim.fn.printf(constants.strings.saved_images, figure_index - 1))
 end
 
+--- format the current cell by piping its source through a command
+--- @param state Notebook.Sessions.session
+function M.format_cell(state)
+	local options = require("notebook.options").get()
+	M.parse_buffer(state)
+	local cells = state.parsed_cells
+	local current_idx = M.get_current_cell_index(state)
+
+	if current_idx == 0 then
+		current_idx = 1
+	end
+
+	if not current_idx then
+		return
+	end
+
+	local cell = cells[current_idx]
+	if cell.type ~= "code" then
+		return
+	end
+
+	local source_text = table.concat(cell.source, "\n")
+
+	if source_text:match("^%s*$") then
+		return
+	end
+
+	local formatted = vim.fn.system(options.format_command, source_text)
+
+	if vim.v.shell_error ~= 0 then
+		vim.notify("Format failed: " .. formatted, vim.log.levels.ERROR)
+		return
+	end
+
+	local formatted_lines = vim.split(formatted, "\n", { plain = true })
+
+	while #formatted_lines > 0 and formatted_lines[#formatted_lines] == "" do
+		table.remove(formatted_lines)
+	end
+
+	if #formatted_lines == 0 then
+		formatted_lines = { "" }
+	end
+
+	cell.source = formatted_lines
+
+	M.sync_buffer(state, cells)
+	M.rerender(state)
+end
+
 --- select the current cell
 --- @param state Notebook.Sessions.session
 function M.select_cell(state)
@@ -794,6 +844,7 @@ function M.setup_file(args)
 	keymap({ "n" },      true,  "move_cell_up",       M.move_cell, "up"         )
 	keymap({ "n" },      true,  "move_cell_down",     M.move_cell, "down"       )
 	keymap({ "n" },      true,  "dump_images",        M.dump_images             ) -- utils
+	keymap({ "n" },      true,  "format_cell",        M.format_cell             )
 	-- stylua: ignore end
 
 	-- override :w with custom save

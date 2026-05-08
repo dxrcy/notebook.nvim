@@ -823,6 +823,10 @@ function M.setup_file(args)
 			M.rerender(state)
 		end,
 	})
+
+	-- trigger autocommands
+	vim.api.nvim_exec_autocmds("BufReadPost", { buffer = bufnr })
+	vim.api.nvim_exec_autocmds("BufWinEnter", { buffer = bufnr })
 end
 
 return M

@@ -763,12 +763,6 @@ function M.setup_file(args)
 	vim.bo[state.bufnr].buftype = ""
 	vim.bo[state.bufnr].modifiable = true
 
-	-- trick formatters & lsp into thinking this is a real python file
-	-- disabled for now, maybe make this an option
-	-- if vim.api.nvim_buf_get_name(state.bufnr):find("%.ipynb$") then
-	-- 	vim.api.nvim_buf_set_name(state.bufnr, (state.path:gsub("%.ipynb$", ".py")))
-	-- end
-
 	M.rerender(state)
 
 	-- keybinds

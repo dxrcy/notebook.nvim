@@ -874,7 +874,7 @@ function M.setup_file(args)
 			end
 		end,
 	})
-	vim.api.nvim_create_autocmd({ "TextChanged" }, {
+	vim.api.nvim_create_autocmd({ "TextChanged", "WinResized" }, {
 		group = M.group,
 		buffer = bufnr,
 		callback = function()

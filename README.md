@@ -85,6 +85,7 @@ return {
 
 			cell_executed    = "[ ✓ Done ]",
 			cell_running     = "[ Running... ]",
+			cell_pending     = "[ Pending... ]",
 			truncated_output = "<Enter> %s more lines",
 			image_output     = "<gx> %s × image",
 		},

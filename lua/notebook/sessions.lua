@@ -12,12 +12,14 @@ local M = {}
 --- @field output_store Notebook.Sessions.Output[] cell output data
 --- @field snacks_images table<integer, snacks.image.Placement> image instances
 --- @field read_buffer string buffer for reading chunked bridge output
+--- @field execution_queue integer[] ordered indices of cells queued for execution
 
 --- @alias Notebook.Sessions.Output Notebook.Jupyter.Output | Notebook.Sessions.Output.extras
 
 --- @class Notebook.Sessions.Output.extras
 --- @field executed boolean
 --- @field running boolean
+--- @field queued boolean
 --- @field is_truncated boolean
 
 --- @class Notebook.Sessions.Cell
@@ -43,6 +45,7 @@ function M.get_state(bufnr)
 			output_store = {},
 			snacks_images = {},
 			read_buffer = "",
+			execution_queue = {},
 		}
 	end
 

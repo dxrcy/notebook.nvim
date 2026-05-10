@@ -84,7 +84,7 @@ end
 
 --- utility for building virtual line content
 --- @param tble any[]
---- @param type "success" | "output" | "error" | "truncation" | "image" | "running"
+--- @param type "success" | "output" | "error" | "truncation" | "image" | "running" | "pending"
 --- @param text? any
 function M.insert_virtual_line(tble, type, text)
 	local options = require("notebook.options").get()
@@ -99,6 +99,7 @@ function M.insert_virtual_line(tble, type, text)
 		truncation = { { border, options.hl.output }, { string.format(options.strings.truncated_output, text), options.hl.hint    } },
 		image      = { { border, options.hl.output }, { string.format(options.strings.image_output, text),     options.hl.hint    } },
 		running    = { { border, options.hl.output }, { options.strings.cell_running,                          options.hl.hint    } },
+		pending    = { { border, options.hl.output }, { options.strings.cell_pending,                          options.hl.hint    } },
 	}
 
 	table.insert(tble, line_table[type])
@@ -215,10 +216,11 @@ function M.render_cell(state, i)
 	-- show running if running
 	if cell_out.running then
 		M.insert_virtual_line(virt_lines, "running")
-	end
-
+	-- show pending if queued
+	elseif cell_out.queued then
+		M.insert_virtual_line(virt_lines, "pending")
 	-- show success if it was executed
-	if cell_out.executed then
+	elseif cell_out.executed then
 		M.insert_virtual_line(virt_lines, "success")
 	end
 

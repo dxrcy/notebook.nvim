@@ -61,6 +61,17 @@ function M.stdout_callback(state, data)
 				elseif msg.type == "status" and msg.content.execution_state == "idle" then
 					state.output_store[idx].executed = true
 					state.output_store[idx].running = false
+					state.output_store[idx].queued = false
+
+					-- run next queued cell
+					if #state.execution_queue > 0 and state.execution_queue[1] == idx then
+						table.remove(state.execution_queue, 1)
+					end
+					if #state.execution_queue > 0 then
+						local next_idx = state.execution_queue[1]
+						state.output_store[next_idx].running = true
+						state.output_store[next_idx].queued = false
+					end
 				end
 			end
 
@@ -227,6 +238,9 @@ if __name__ == '__main__':
 	-- start client executing bridge script
 	local command = { cmd, "-c", BRIDGE_PY }
 
+	-- clear existing queued state
+	state.execution_queue = {}
+
 	-- start client
 	state.job_id = vim.fn.jobstart(command, {
 		on_stdout = function(_, data)
@@ -270,11 +284,15 @@ function M.run_cells(state, indices)
 
 			-- execute
 			if code ~= "" then
-				-- reset executed state
+				-- first cell in queue runs immediately, rest are queued
+				local is_first = #state.execution_queue == 0
+
 				state.output_store[i] = {
 					executed = false,
-					running = true,
+					running = is_first,
+					queued = not is_first,
 				}
+				table.insert(state.execution_queue, i)
 
 				-- send execution request as json
 				local req = vim.json.encode({ cell_idx = i, code = code })

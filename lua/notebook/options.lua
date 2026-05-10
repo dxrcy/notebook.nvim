@@ -70,6 +70,7 @@ local M = {}
 --- state info
 --- @field cell_executed string string to show when a cell finishes running
 --- @field cell_running string string to show when a cell is running
+--- @field cell_pending string string to show when a cell is queued/pending
 --- @field truncated_output string string to show when output is truncated %s for line count
 --- @field image_output string string to show when output has images %s for image count
 
@@ -136,6 +137,7 @@ M.options = {
 
 		cell_executed    = "[ ✓ Done ]",
 		cell_running     = "[ Running... ]",
+		cell_pending     = "[ Pending... ]",
 		truncated_output = "<Enter> %s more lines",
 		image_output     = "<gx> %s × image",
 	},

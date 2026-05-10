@@ -110,6 +110,27 @@ function M.insert_cell(state, cell_type)
 	vim.cmd(options.new_cell_cmd)
 end
 
+--- collect output text content for a given cell index
+--- @param state Notebook.Sessions.session
+--- @param cell_idx integer
+--- @return string[]
+local function collect_output_content(state, cell_idx)
+	local content = {}
+	local parser = utils.create_terminal_parser(function(line)
+		table.insert(content, line)
+	end)
+
+	for _, out in ipairs(state.output_store[cell_idx] or {}) do
+		local text = out.text or (out.data and out.data["text/plain"])
+		if text then
+			parser.push(text)
+		end
+	end
+	parser.flush()
+
+	return content
+end
+
 --- convert the current cells output into a new markdown cell
 --- @param state Notebook.Sessions.session
 function M.output_to_markdown(state)
@@ -125,22 +146,7 @@ function M.output_to_markdown(state)
 		return
 	end
 
-	-- collect output text content
-	local content = {}
-	local parser = utils.create_terminal_parser(function(line)
-		table.insert(content, line)
-	end)
-
-	-- feed outputs into the parser
-	for _, out in ipairs(state.output_store[cell_idx] or {}) do
-		local text = out.text or (out.data and out.data["text/plain"])
-		if text then
-			parser.push(text)
-		end
-	end
-	parser.flush()
-
-	-- nothing to convert
+	local content = collect_output_content(state, cell_idx)
 	if #content == 0 then
 		return
 	end
@@ -167,6 +173,40 @@ function M.output_to_markdown(state)
 	if target_cell then
 		vim.api.nvim_win_set_cursor(0, { target_cell.start_line + 1, 0 })
 	end
+end
+
+--- convert all cells output into markdown
+--- @param state Notebook.Sessions.session
+function M.output_to_markdown_all(state)
+	M.parse_buffer(state)
+	local cells = state.parsed_cells
+	local inserted = 0
+
+	-- iterate backward to avoid index shifting
+	for i = #cells, 1, -1 do
+		local content = collect_output_content(state, i)
+		if #content > 0 then
+			local new_cell = { type = "markdown", source = content }
+			local insert_idx = i + 1
+			table.insert(cells, insert_idx, new_cell)
+
+			table.insert(state.output_store, insert_idx, {})
+			if state.snacks_images then
+				table.insert(state.snacks_images, insert_idx, {})
+			else
+				state.snacks_images = { [insert_idx] = {} }
+			end
+
+			inserted = inserted + 1
+		end
+	end
+
+	if inserted == 0 then
+		return
+	end
+
+	M.sync_buffer(state, cells)
+	M.rerender(state)
 end
 
 --- remove the current cell
@@ -899,6 +939,7 @@ function M.setup_file(args)
 	keymap({ "n" },      true,  "insert_markdown",    M.insert_cell, "markdown" ) -- editing cells
 	keymap({ "n" },      true,  "insert_code",        M.insert_cell, "code"     )
 	keymap({ "n" },      true,  "output_to_md",       M.output_to_markdown      )
+	keymap({ "n" },      true,  "output_to_md_all",   M.output_to_markdown_all  )
 	keymap({ "n" },      true,  "remove_cell",        M.remove_cell             )
 	keymap({ "n" },      true,  "split_cell",         M.split_cell              )
 	keymap({ "n" },      true,  "move_cell_up",       M.move_cell, "up"         )

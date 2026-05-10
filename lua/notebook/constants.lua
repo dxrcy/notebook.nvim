@@ -30,6 +30,7 @@ local M = {
 		insert_markdown_desc    = "Insert markdown cell below",
 		insert_code_desc        = "Insert code cell below",
 		output_to_md_desc       = "Convert output to markdown cell",
+		output_to_md_all_desc   = "Convert all outputs to markdown cells",
 		split_cell_desc         = "Split current cell",
 		remove_cell_desc        = "Remove current cell",
 		move_cell_up_desc       = "Move cell up",

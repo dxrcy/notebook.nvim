@@ -102,6 +102,7 @@ M.options = {
 		insert_markdown    = "m",
 		insert_code        = "c",
 		output_to_md       = "im",
+		output_to_md_all   = "ia",
 		split_cell         = "s",
 		remove_cell        = "X",
 		move_cell_up       = "<up>",

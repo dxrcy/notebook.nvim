@@ -110,6 +110,65 @@ function M.insert_cell(state, cell_type)
 	vim.cmd(options.new_cell_cmd)
 end
 
+--- convert the current cells output into a new markdown cell
+--- @param state Notebook.Sessions.session
+function M.output_to_markdown(state)
+	M.parse_buffer(state)
+	local cells = state.parsed_cells
+	local cell_idx = M.get_current_cell_index(state)
+
+	if cell_idx == 0 then
+		cell_idx = 1
+	end
+
+	if not cell_idx then
+		return
+	end
+
+	-- collect output text content
+	local content = {}
+	local parser = utils.create_terminal_parser(function(line)
+		table.insert(content, line)
+	end)
+
+	-- feed outputs into the parser
+	for _, out in ipairs(state.output_store[cell_idx] or {}) do
+		local text = out.text or (out.data and out.data["text/plain"])
+		if text then
+			parser.push(text)
+		end
+	end
+	parser.flush()
+
+	-- nothing to convert
+	if #content == 0 then
+		return
+	end
+
+	-- create the new markdown cell
+	local new_cell = { type = "markdown", source = content }
+	local insert_idx = cell_idx + 1
+	table.insert(cells, insert_idx, new_cell)
+
+	-- sync state
+	table.insert(state.output_store, insert_idx, {})
+	if state.snacks_images then
+		table.insert(state.snacks_images, insert_idx, {})
+	else
+		state.snacks_images = { [insert_idx] = {} }
+	end
+
+	-- sync buffer
+	M.sync_buffer(state, cells)
+	M.rerender(state)
+
+	-- move cursor into the new cell
+	local target_cell = state.parsed_cells[insert_idx]
+	if target_cell then
+		vim.api.nvim_win_set_cursor(0, { target_cell.start_line + 1, 0 })
+	end
+end
+
 --- remove the current cell
 --- @param state Notebook.Sessions.session
 function M.remove_cell(state)
@@ -839,6 +898,7 @@ function M.setup_file(args)
 	keymap({ "o", "x" }, false, "textobject_cell",    M.select_cell             )
 	keymap({ "n" },      true,  "insert_markdown",    M.insert_cell, "markdown" ) -- editing cells
 	keymap({ "n" },      true,  "insert_code",        M.insert_cell, "code"     )
+	keymap({ "n" },      true,  "output_to_md",       M.output_to_markdown      )
 	keymap({ "n" },      true,  "remove_cell",        M.remove_cell             )
 	keymap({ "n" },      true,  "split_cell",         M.split_cell              )
 	keymap({ "n" },      true,  "move_cell_up",       M.move_cell, "up"         )

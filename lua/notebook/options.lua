@@ -38,6 +38,7 @@ local M = {}
 --- adding cells
 --- @field insert_markdown string keybind to insert a markdown cell under the current cell
 --- @field insert_code string keybind to insert a code cell under the current cell
+--- @field output_to_markdown string keybind to insert a markdown cell with the current cells output
 --- @field split_cell string keybind to split the current cell at the cursor
 --- @field remove_cell string keybind to remove the current cell
 --- @field move_cell_up string keybind to move the current cell up
@@ -100,6 +101,7 @@ M.options = {
 
 		insert_markdown    = "m",
 		insert_code        = "c",
+		output_to_md       = "im",
 		split_cell         = "s",
 		remove_cell        = "X",
 		move_cell_up       = "<up>",

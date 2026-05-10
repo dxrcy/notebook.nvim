@@ -29,6 +29,7 @@ local M = {
 		previous_cell_desc      = "Prev cell",
 		insert_markdown_desc    = "Insert markdown cell below",
 		insert_code_desc        = "Insert code cell below",
+		output_to_md_desc       = "Convert output to markdown cell",
 		split_cell_desc         = "Split current cell",
 		remove_cell_desc        = "Remove current cell",
 		move_cell_up_desc       = "Move cell up",

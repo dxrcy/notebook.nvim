@@ -1,4 +1,5 @@
 local constants = require("notebook.constants")
+local lualine = require("notebook.lualine")
 local renderer = require("notebook.renderer")
 
 local M = {}
@@ -86,6 +87,7 @@ function M.stdout_callback(state, data)
 		if vim.api.nvim_buf_is_valid(state.bufnr) then
 			renderer.render(state)
 		end
+		lualine.refresh()
 	end)
 end
 
@@ -300,6 +302,8 @@ function M.run_cells(state, indices)
 			end
 		end
 	end
+
+	lualine.refresh()
 end
 
 return M

@@ -94,3 +94,19 @@ return {
 ```
 
 </details>
+
+<details><summary>Lualine setup</summary>
+
+Add the notebook status section to your lualine config:
+
+```lua
+require("lualine").setup({
+	sections = {
+		lualine_x = {
+			"notebook",
+		},
+	},
+})
+```
+
+</details>

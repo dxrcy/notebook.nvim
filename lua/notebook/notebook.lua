@@ -1,6 +1,7 @@
 local bridge = require("notebook.bridge")
 local constants = require("notebook.constants")
 local jupyter = require("notebook.jupyter")
+local lualine = require("notebook.lualine")
 local renderer = require("notebook.renderer")
 local sessions = require("notebook.sessions")
 local utils = require("notebook.utils")
@@ -509,6 +510,8 @@ function M.clear_output(state)
 		-- clear images
 		state.snacks_images[i] = {}
 	end
+
+	lualine.refresh()
 end
 
 --- jump to the next or previous cell

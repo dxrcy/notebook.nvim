@@ -42,6 +42,7 @@ local M = {
 		dump_images_desc        = "Dump all image output to /figures",
 		format_cell_desc        = "Format current cell",
 		textobject_cell_desc    = "inside cell",
+		go_to_running_cell_desc = "Go to running cell",
 	},
 }
 

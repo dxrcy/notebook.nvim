@@ -37,6 +37,7 @@ local M = {}
 --- @field next_cell string keybind to jump to the next cell
 --- @field previous_cell string keybind to jump to the previous cell
 --- @field textobject_cell string textobject keybind for 'inside cell'
+--- @field go_to_running_cell string keybind to go to the running cell
 --- adding cells
 --- @field insert_markdown string keybind to insert a markdown cell under the current cell
 --- @field insert_code string keybind to insert a code cell under the current cell
@@ -117,6 +118,7 @@ M.options = {
 		refresh_all_output = "R",
 		format_cell        = "f",
 
+		go_to_running_cell = "g",
 		open_image         = "gx",
 		show_output        = "<CR>",
 		dump_images        = "D",

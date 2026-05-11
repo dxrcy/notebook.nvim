@@ -514,6 +514,23 @@ function M.clear_output(state)
 	lualine.refresh()
 end
 
+--- go to the bottom of the currently running cell
+--- @param state Notebook.Sessions.session
+function M.go_to_running_cell(state)
+	local idx = state.execution_queue[1]
+	if not idx then
+		return
+	end
+
+	M.parse_buffer(state)
+	local cell = state.parsed_cells[idx]
+	if not cell then
+		return
+	end
+
+	vim.api.nvim_win_set_cursor(0, { cell.end_line + 1, 0 })
+end
+
 --- jump to the next or previous cell
 --- @param state Notebook.Sessions.session
 --- @param next boolean
@@ -939,6 +956,7 @@ function M.setup_file(args)
 	keymap({ "n" },      false, "next_cell",          M.jump_cell, true         ) -- navigation
 	keymap({ "n" },      false, "previous_cell",      M.jump_cell, false        )
 	keymap({ "o", "x" }, false, "textobject_cell",    M.select_cell             )
+	keymap({ "n" },      true,  "go_to_running_cell", M.go_to_running_cell      )
 	keymap({ "n" },      true,  "insert_markdown",    M.insert_cell, "markdown" ) -- editing cells
 	keymap({ "n" },      true,  "insert_code",        M.insert_cell, "code"     )
 	keymap({ "n" },      true,  "output_to_md",       M.output_to_markdown      )

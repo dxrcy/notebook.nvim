@@ -318,8 +318,12 @@ function M.split_cell(state)
 	local bottom = {}
 
 	for i, line in ipairs(cell.source) do
-		if i <= rel then
+		if i < rel then
 			table.insert(top, line)
+		elseif i == rel then
+			if #line > 0 then
+				table.insert(top, line)
+			end
 		else
 			table.insert(bottom, line)
 		end

@@ -29,6 +29,20 @@ function M.apply_highlights(window)
 	vim.api.nvim_win_set_hl_ns(window, M.hl_ns)
 end
 
+--- rerender a single cells output
+--- @param state Notebook.Sessions.session
+--- @param i integer cell index
+function M.rerender_cell_output(state, i)
+	local cell = state.parsed_cells[i]
+	if not cell or cell.type ~= "code" then
+		return
+	end
+
+	vim.api.nvim_buf_clear_namespace(state.bufnr, M.output_ns, cell.end_line, cell.end_line + 1)
+
+	M.render_cell(state, i, { skip_layout = true })
+end
+
 --- clear a namespace from a buffer
 --- @param bufnr integer buffer id
 --- @param ns integer namespace id
@@ -138,7 +152,9 @@ end
 --- render a cell
 --- @param state Notebook.Sessions.session
 --- @param i integer
-function M.render_cell(state, i)
+--- @param opts? { skip_layout?: boolean }
+function M.render_cell(state, i, opts)
+	opts = opts or {}
 	local options = require("notebook.options").get()
 	local cell = state.parsed_cells[i]
 
@@ -146,60 +162,62 @@ function M.render_cell(state, i)
 		return
 	end
 
-	local has_cell_gaps = options.cell_gap and options.cell_gap > 0
+	if not opts.skip_layout then
+		local has_cell_gaps = options.cell_gap and options.cell_gap > 0
 
-	-- show label for next cell when no gaps, otherwise dont show it
-	local optional_code_label = (not has_cell_gaps) and options.strings.code_label or nil
+		-- show label for next cell when no gaps, otherwise dont show it
+		local optional_code_label = (not has_cell_gaps) and options.strings.code_label or nil
 
-	-- borders over """ around markdown
-	if cell.type == "markdown" then
-		M.insert_separator(state, cell.start_line - 1, M.border_ns, options.strings.markdown_label)
-		-- no label if preceding another markdown cell
-		local next_c = state.parsed_cells[i + 1]
-		if next_c and next_c.type == "markdown" then
-			M.insert_separator(state, cell.end_line + 1, M.border_ns)
-		else
-			M.insert_separator(state, cell.end_line + 1, M.border_ns, optional_code_label)
-		end
-	end
-	-- border above code
-	if cell.type == "code" then
-		local next_c = state.parsed_cells[i + 1]
-		if next_c and next_c.type == "code" then
-			M.insert_separator(state, cell.end_line + 1, M.border_ns, optional_code_label)
-		end
-	end
-
-	-- gap between cells
-	if options.cell_gap and options.cell_gap > 0 then
-		local gap_lines = {}
-
-		-- gap location
-		local gap_line = cell.start_line - (cell.type == "markdown" and 1 or 0)
-
-		-- markdown with code before it adds a border under the code
+		-- borders over """ around markdown
 		if cell.type == "markdown" then
-			local next_c = state.parsed_cells[i - 1]
-			if next_c and next_c.type == "code" then
-				table.insert(gap_lines, { { M.border_text(), options.hl.output } })
+			M.insert_separator(state, cell.start_line - 1, M.border_ns, options.strings.markdown_label)
+			-- no label if preceding another markdown cell
+			local next_c = state.parsed_cells[i + 1]
+			if next_c and next_c.type == "markdown" then
+				M.insert_separator(state, cell.end_line + 1, M.border_ns)
+			else
+				M.insert_separator(state, cell.end_line + 1, M.border_ns, optional_code_label)
 			end
 		end
-		-- actual gap
-		if gap_line ~= 0 then
-			for _ = 1, options.cell_gap do
-				table.insert(gap_lines, { { "", "" } })
-			end
-		end
-		-- extra border above code cells
+		-- border above code
 		if cell.type == "code" then
-			table.insert(gap_lines, { { M.border_text(options.strings.code_label), options.hl.output } })
+			local next_c = state.parsed_cells[i + 1]
+			if next_c and next_c.type == "code" then
+				M.insert_separator(state, cell.end_line + 1, M.border_ns, optional_code_label)
+			end
 		end
 
-		-- insert
-		pcall(vim.api.nvim_buf_set_extmark, state.bufnr, M.border_ns, gap_line, 0, {
-			virt_lines_above = true,
-			virt_lines = gap_lines,
-		})
+		-- gap between cells
+		if options.cell_gap and options.cell_gap > 0 then
+			local gap_lines = {}
+
+			-- gap location
+			local gap_line = cell.start_line - (cell.type == "markdown" and 1 or 0)
+
+			-- markdown with code before it adds a border under the code
+			if cell.type == "markdown" then
+				local next_c = state.parsed_cells[i - 1]
+				if next_c and next_c.type == "code" then
+					table.insert(gap_lines, { { M.border_text(), options.hl.output } })
+				end
+			end
+			-- actual gap
+			if gap_line ~= 0 then
+				for _ = 1, options.cell_gap do
+					table.insert(gap_lines, { { "", "" } })
+				end
+			end
+			-- extra border above code cells
+			if cell.type == "code" then
+				table.insert(gap_lines, { { M.border_text(options.strings.code_label), options.hl.output } })
+			end
+
+			-- insert
+			pcall(vim.api.nvim_buf_set_extmark, state.bufnr, M.border_ns, gap_line, 0, {
+				virt_lines_above = true,
+				virt_lines = gap_lines,
+			})
+		end
 	end
 
 	-- everything else is just for code

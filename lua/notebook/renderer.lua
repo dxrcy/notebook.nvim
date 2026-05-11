@@ -29,6 +29,52 @@ function M.apply_highlights(window)
 	vim.api.nvim_win_set_hl_ns(window, M.hl_ns)
 end
 
+--- format milliseconds into a readable string
+--- @param ms integer
+--- @return string
+function M.format_elapsed(ms)
+	local total_sec = ms / 1000
+	-- seconds
+	if total_sec < 60 then
+		return string.format("%.2fs", total_sec)
+	-- minutes, seconds
+	elseif total_sec < 3600 then
+		local m = math.floor(total_sec / 60)
+		local s = math.floor(total_sec % 60)
+		return string.format("%dm %02ds", m, s)
+	-- hours, minutes
+	else
+		local h = math.floor(total_sec / 3600)
+		local m = math.floor((total_sec % 3600) / 60)
+		return string.format("%dh %02dm", h, m)
+	end
+end
+
+--- check if any cell is currently running
+--- @param state Notebook.Sessions.session
+--- @return boolean
+function M.has_running_cell(state)
+	for _, output in ipairs(state.output_store or {}) do
+		if output.running then
+			return true
+		end
+	end
+	return false
+end
+
+--- find indices of all running cells
+--- @param state Notebook.Sessions.session
+--- @return integer[]
+function M.find_running_cells(state)
+	local running = {}
+	for i, output in ipairs(state.output_store or {}) do
+		if output.running then
+			table.insert(running, i)
+		end
+	end
+	return running
+end
+
 --- rerender a single cells output
 --- @param state Notebook.Sessions.session
 --- @param i integer cell index
@@ -62,7 +108,57 @@ function M.render(state)
 		for i, _ in ipairs(state.parsed_cells) do
 			M.render_cell(state, i)
 		end
+
+		-- manage elapsed timer for running cells
+		local options = require("notebook.options").get()
+		if options.show_elapsed_time and M.has_running_cell(state) then
+			M.start_elapsed_timer(state)
+		elseif M._elapsed_state == state then
+			M.stop_elapsed_timer()
+		end
 	end)
+end
+
+--- start a timer to keep elapsed time updated for running cells
+--- @param state Notebook.Sessions.session
+function M.start_elapsed_timer(state)
+	if M._elapsed_timer and M._elapsed_state == state then
+		return
+	end
+
+	local options = require("notebook.options").get()
+	local interval = options.elapsed_timer_interval
+
+	M._elapsed_state = state
+	if not M._elapsed_timer then
+		M._elapsed_timer = vim.loop.new_timer()
+	end
+	M._elapsed_timer:start(
+		interval,
+		interval,
+		vim.schedule_wrap(function()
+			if vim.api.nvim_buf_is_valid(state.bufnr) then
+				local running = M.find_running_cells(state)
+				if #running > 0 then
+					for _, idx in ipairs(running) do
+						M.rerender_cell_output(state, idx)
+					end
+				else
+					M.stop_elapsed_timer()
+				end
+			else
+				M.stop_elapsed_timer()
+			end
+		end)
+	)
+end
+
+--- stop the timer
+function M.stop_elapsed_timer()
+	if M._elapsed_timer then
+		M._elapsed_timer:stop()
+	end
+	M._elapsed_state = nil
 end
 
 --- remove cells images from the UI
@@ -107,12 +203,12 @@ function M.insert_virtual_line(tble, type, text)
 
 	-- stylua: ignore
 	local line_table = {
-		success    = { { border, options.hl.output }, { options.strings.cell_executed,                         options.hl.success } },
+		success    = { { border, options.hl.output }, { options.strings.cell_executed .. text,                 options.hl.success } },
 		output     = { { border, options.hl.output }, { text,                                                  options.hl.output  } },
 		error      = { { border, options.hl.error  }, { text,                                                  options.hl.error   } },
 		truncation = { { border, options.hl.output }, { string.format(options.strings.truncated_output, text), options.hl.hint    } },
 		image      = { { border, options.hl.output }, { string.format(options.strings.image_output, text),     options.hl.hint    } },
-		running    = { { border, options.hl.output }, { options.strings.cell_running,                          options.hl.hint    } },
+		running    = { { border, options.hl.output }, { options.strings.cell_running .. text,                  options.hl.hint    } },
 		pending    = { { border, options.hl.output }, { options.strings.cell_pending,                          options.hl.hint    } },
 	}
 
@@ -233,13 +329,23 @@ function M.render_cell(state, i, opts)
 
 	-- show running if running
 	if cell_out.running then
-		M.insert_virtual_line(virt_lines, "running")
+		local text = ""
+		if options.show_elapsed_time then
+			local elapsed = cell_out.start_time and (vim.uv.now() - cell_out.start_time) or 0
+			text = M.format_elapsed(elapsed)
+		end
+		M.insert_virtual_line(virt_lines, "running", text)
 	-- show pending if queued
 	elseif cell_out.queued then
 		M.insert_virtual_line(virt_lines, "pending")
 	-- show success if it was executed
 	elseif cell_out.executed then
-		M.insert_virtual_line(virt_lines, "success")
+		local text = ""
+		if options.show_elapsed_time then
+			local elapsed = (cell_out.end_time and cell_out.start_time and (cell_out.end_time - cell_out.start_time)) or 0
+			text = M.format_elapsed(elapsed)
+		end
+		M.insert_virtual_line(virt_lines, "success", text)
 	end
 
 	-- cleanup existing snacks images

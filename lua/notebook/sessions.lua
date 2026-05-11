@@ -21,6 +21,8 @@ local M = {}
 --- @field running boolean
 --- @field queued boolean
 --- @field is_truncated boolean
+--- @field start_time integer | nil
+--- @field end_time integer | nil
 
 --- @class Notebook.Sessions.Cell
 --- @field type Notebook.Jupyter.CellType

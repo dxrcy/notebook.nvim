@@ -20,6 +20,8 @@ local M = {}
 --- @field override_gitsigns boolean whether to run the gitsigns override trick
 --- @field override_conform boolean whether to run the conform override trick
 --- @field debug boolean debug mode for development
+--- @field show_elapsed_time boolean show elapsed time next to running/executed cells
+--- @field elapsed_timer_interval integer interval in ms for elapsed time updates
 --- categorised option sections
 --- @field keys Notebook.Options.options.keys keybinds
 --- @field hl Notebook.Options.options.highlights highlight groups
@@ -88,6 +90,8 @@ M.options = {
 	image_warn_threshold = 10,
 	override_gitsigns = true,
 	override_conform = true,
+	show_elapsed_time = true,
+	elapsed_timer_interval = 1000,
 	debug = false,
 
 	keys = {

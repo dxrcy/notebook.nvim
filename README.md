@@ -37,6 +37,8 @@ return {
 		image_warn_threshold = 10,
 		override_gitsigns = true,
 		override_conform = true,
+		show_elapsed_time = true,
+		elapsed_timer_interval = 1000,
 
 		keys = {
 			run_cell           = "r",

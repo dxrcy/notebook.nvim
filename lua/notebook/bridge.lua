@@ -63,6 +63,7 @@ function M.stdout_callback(state, data)
 					state.output_store[idx].executed = true
 					state.output_store[idx].running = false
 					state.output_store[idx].queued = false
+					state.output_store[idx].end_time = vim.uv.now()
 
 					-- run next queued cell
 					if #state.execution_queue > 0 and state.execution_queue[1] == idx then
@@ -72,6 +73,7 @@ function M.stdout_callback(state, data)
 						local next_idx = state.execution_queue[1]
 						state.output_store[next_idx].running = true
 						state.output_store[next_idx].queued = false
+						state.output_store[next_idx].start_time = vim.uv.now()
 					end
 				end
 			end
@@ -293,6 +295,7 @@ function M.run_cells(state, indices)
 					executed = false,
 					running = is_first,
 					queued = not is_first,
+					start_time = is_first and vim.uv.now() or nil,
 				}
 				table.insert(state.execution_queue, i)
 

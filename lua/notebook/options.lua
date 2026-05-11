@@ -50,6 +50,7 @@ local M = {}
 --- @field clear_all_output string keybind to clear all output data
 --- @field refresh_all_output string keybind to rerender in the case of all too common rendering bugs
 --- @field format_cell string keybind to format the current cell
+--- @field toggle_cell_type string keybind to toggle between code and markdown
 --- @field open_image string keybind to open the current cells images in the systems image viewer
 --- @field show_output string keybind to show the full output in a floating window
 --- @field dump_images string keybind to save all images 'dump' into a `/figures` directory
@@ -117,6 +118,7 @@ M.options = {
 		clear_all_output   = "x",
 		refresh_all_output = "R",
 		format_cell        = "f",
+		toggle_cell_type   = "S",
 
 		go_to_running_cell = "g",
 		open_image         = "gx",

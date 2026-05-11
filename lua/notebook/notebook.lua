@@ -210,6 +210,40 @@ function M.output_to_markdown_all(state)
 	M.rerender(state)
 end
 
+--- toggle the current cell type between code and markdown
+--- @param state Notebook.Sessions.session
+function M.toggle_cell_type(state)
+	M.parse_buffer(state)
+	local cells = state.parsed_cells
+	local idx = M.get_current_cell_index(state)
+
+	if idx == 0 then
+		idx = 1
+	end
+
+	if not idx then
+		return
+	end
+
+	local cell = cells[idx]
+	local was_code = cell.type == "code"
+	cell.type = was_code and "markdown" or "code"
+
+	if was_code then
+		state.output_store[idx] = {}
+		renderer.clear_images(state, idx)
+	end
+
+	M.sync_buffer(state, cells)
+	M.rerender(state)
+
+	-- keep cursor in same cell
+	local target = state.parsed_cells[idx]
+	if target then
+		vim.api.nvim_win_set_cursor(0, { target.start_line + 1, 0 })
+	end
+end
+
 --- remove the current cell
 --- @param state Notebook.Sessions.session
 function M.remove_cell(state)
@@ -962,6 +996,7 @@ function M.setup_file(args)
 	keymap({ "n" },      true,  "output_to_md",       M.output_to_markdown      )
 	keymap({ "n" },      true,  "output_to_md_all",   M.output_to_markdown_all  )
 	keymap({ "n" },      true,  "remove_cell",        M.remove_cell             )
+	keymap({ "n" },      true,  "toggle_cell_type",   M.toggle_cell_type        )
 	keymap({ "n" },      true,  "split_cell",         M.split_cell              )
 	keymap({ "n" },      true,  "move_cell_up",       M.move_cell, "up"         )
 	keymap({ "n" },      true,  "move_cell_down",     M.move_cell, "down"       )

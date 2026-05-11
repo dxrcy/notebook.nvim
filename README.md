@@ -62,6 +62,7 @@ return {
 			clear_all_output   = "x",
 			refresh_all_output = "R",
 			format_cell        = "f",
+			toggle_cell_type   = "S",
 			go_to_running_cell = "g",
 
 			open_image         = "gx",

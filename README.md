@@ -99,6 +99,26 @@ return {
 
 </details>
 
+<details><summary>Formatting</summary>
+
+By default `black` formatter fails on notebooks due to them not matching their actual files.
+This can be fixed by using black through stdin instead of letting it find the file istelf.
+Example with `conform`:
+
+```lua
+conform.setup({
+	formatters = {
+		black = {
+			command = "black",
+			args = { "--quiet", "-" },
+			stdin = true,
+		},
+	},
+})
+```
+
+</details>
+
 <details><summary>Lualine setup</summary>
 
 Add the notebook status section to your lualine config:
